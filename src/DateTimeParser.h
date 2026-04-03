@@ -99,14 +99,16 @@ public:
   // parsing with a format string so it doesn't seem necessary to add individual
   // parsers for other common formats.
   bool parseISO8601(bool /* partial */ = true) {
-    // Date: YYYY-MM-DD, YYYYMMDD
+    // Date: YYYY-MM-DD, YYYYMMDD, YYYY/MM/DD, YYYY.MM.DD, etc.
+    // Accepts any non-alphanumeric separator between date components,
+    // similar to lubridate's ymd() flexible parsing.
     if (!consumeInteger(4, &year_))
       return false;
-    if (consumeThisChar('-'))
+    if (consumeDateSeparator())
       compactDate_ = false;
     if (!consumeInteger(2, &mon_))
       return false;
-    if (!compactDate_ && !consumeThisChar('-'))
+    if (!compactDate_ && !consumeDateSeparator())
       return false;
     if (!consumeInteger(2, &day_))
       return false;
@@ -164,14 +166,15 @@ public:
   }
 
   bool parseDate() {
-    // Date: YYYY-MM-DD, YYYY/MM/DD
+    // Date: YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD, etc.
+    // Accepts any non-alphanumeric separator between date components.
     if (!consumeInteger(4, &year_))
       return false;
-    if (!consumeThisChar('-') && !consumeThisChar('/'))
+    if (!consumeDateSeparator())
       return false;
     if (!consumeInteger(2, &mon_))
       return false;
-    if (!consumeThisChar('-') && !consumeThisChar('/'))
+    if (!consumeDateSeparator())
       return false;
     if (!consumeInteger(2, &day_))
       return false;
@@ -487,6 +490,19 @@ private:
     while (dateItr_ != dateEnd_ && std::isspace(*dateItr_))
       dateItr_++;
 
+    return true;
+  }
+
+  // Consume a single non-alphanumeric, non-space character as a date separator.
+  // Accepts: - / . , ; and other punctuation, similar to lubridate's ymd().
+  // Rejects: digits, letters, whitespace (to avoid false positives).
+  inline bool consumeDateSeparator() {
+    if (dateItr_ == dateEnd_)
+      return false;
+    char c = *dateItr_;
+    if (std::isalnum(c) || std::isspace(c))
+      return false;
+    dateItr_++;
     return true;
   }
 
