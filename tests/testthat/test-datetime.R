@@ -596,3 +596,61 @@ test_that("vroom() reads dot-separated MDY dates", {
   expect_s3_class(result$date, "Date")
   expect_equal(result$date, as.Date(c("2024-10-02", "2024-03-15")))
 })
+
+# --- auto-detect separator tests ---
+
+test_that("vroom() auto-detects DMY with slash separator", {
+  csv <- "id,date\n1,15/03/2024\n2,20/01/2024"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-03-15", "2024-01-20")))
+})
+
+test_that("vroom() auto-detects MDY with slash separator", {
+  csv <- "id,date\n1,10/15/2024\n2,11/20/2023"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-15", "2023-11-20")))
+})
+
+test_that("vroom() auto-detects YMD with slash separator", {
+  csv <- "id,date\n1,2024/01/15\n2,2023/12/20"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-01-15", "2023-12-20")))
+})
+
+test_that("vroom() auto-detects DMY with dot separator", {
+  csv <- "id,date\n1,15.03.2024\n2,20.01.2024"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-03-15", "2024-01-20")))
+})
+
+test_that("vroom() auto-detects MDY with dot separator", {
+  csv <- "id,date\n1,10.15.2024\n2,11.20.2023"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-15", "2023-11-20")))
+})
+
+test_that("vroom() auto-detects YMD with dot separator", {
+  csv <- "id,date\n1,2024.01.15\n2,2023.12.20"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-01-15", "2023-12-20")))
+})
+
+test_that("vroom() auto-detects DMY with dash separator", {
+  csv <- "id,date\n1,15-03-2024\n2,20-01-2024"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-03-15", "2024-01-20")))
+})
+
+test_that("vroom() auto-detects MDY with dash separator", {
+  csv <- "id,date\n1,10-15-2024\n2,11-20-2023"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-15", "2023-11-20")))
+})
