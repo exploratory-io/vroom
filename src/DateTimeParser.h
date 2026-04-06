@@ -282,6 +282,10 @@ public:
       day_ = part2;
     }
 
+    // Validate month and day are in plausible range
+    if (mon_ < 1 || mon_ > 12) return false;
+    if (day_ < 1 || day_ > 31) return false;
+
     return true;
   }
 

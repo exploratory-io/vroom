@@ -111,7 +111,8 @@ static bool isDateTime(const std::string& x, LocaleInfo* pLocale) {
   // Explicit datetime order (has '_' suffix)
   if (!pLocale->dateOrder_.empty() &&
       pLocale->dateOrder_.find('_') != std::string::npos) {
-    return parser.parseDateOrder(pLocale->dateOrder_);
+    if (!parser.parseDateOrder(pLocale->dateOrder_)) return false;
+    return parser.makeDateTime().validDateTime();
   }
 
   // If a date-only order is explicitly set, don't match as datetime
