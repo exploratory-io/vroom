@@ -506,3 +506,34 @@ test_that("durations", {
     hms::as_hms(-hms::hms(45.67, 23, 1))
   )
 })
+
+# --- date_order tests ---
+test_that("vroom guess_type detects MDY dates with explicit date_order", {
+  loc_mdy <- locale(date_order = "mdy")
+  expect_true(
+    inherits(vroom::guess_type(c("10/02/2024", "03/15/2024"), locale = loc_mdy), "collector_date")
+  )
+})
+
+test_that("vroom guess_type detects DMY dates with explicit date_order", {
+  loc_dmy <- locale(date_order = "dmy")
+  expect_true(
+    inherits(vroom::guess_type(c("02/10/2024", "15/03/2024"), locale = loc_dmy), "collector_date")
+  )
+})
+
+test_that("vroom guess_type detects MDY datetime with explicit date_order", {
+  loc <- locale(date_order = "mdy_hms")
+  expect_true(
+    inherits(vroom::guess_type(c("10/02/2024 14:30:00"), locale = loc), "collector_datetime")
+  )
+})
+
+test_that("vroom guess_type auto-detects year-last date without date_order", {
+  # 15/03/2024: part1=15 > 12, unambiguously DMY
+  expect_true(inherits(vroom::guess_type(c("15/03/2024", "20/01/2024")), "collector_date"))
+})
+
+test_that("vroom guess_type auto-detects ambiguous year-last as MDY by default", {
+  expect_true(inherits(vroom::guess_type(c("10/02/2024", "03/15/2024")), "collector_date"))
+})
