@@ -537,3 +537,62 @@ test_that("vroom guess_type auto-detects year-last date without date_order", {
 test_that("vroom guess_type auto-detects ambiguous year-last as MDY by default", {
   expect_true(inherits(vroom::guess_type(c("10/02/2024", "03/15/2024")), "collector_date"))
 })
+
+# --- end-to-end vroom() tests with date_order ---
+
+test_that("vroom() reads MDY date column with explicit date_order", {
+  csv <- "id,date\n1,10/02/2024\n2,03/15/2024\n3,12/31/2023"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "mdy"), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-02", "2024-03-15", "2023-12-31")))
+})
+
+test_that("vroom() reads DMY date column with explicit date_order", {
+  csv <- "id,date\n1,02/10/2024\n2,15/03/2024\n3,31/12/2023"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "dmy"), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-02", "2024-03-15", "2023-12-31")))
+})
+
+test_that("vroom() reads MDY datetime column with explicit date_order", {
+  csv <- "id,dt\n1,10/02/2024 14:30:00\n2,03/15/2024 08:00:00"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "mdy_hms"), show_col_types = FALSE)
+  expect_s3_class(result$dt, "POSIXct")
+  # vroom uses "GMT" internally; compare numeric values only
+  expect_equal(as.numeric(result$dt), as.numeric(as.POSIXct(c("2024-10-02 14:30:00", "2024-03-15 08:00:00"), tz = "UTC")))
+})
+
+test_that("vroom() reads DMY datetime column with explicit date_order", {
+  csv <- "id,dt\n1,02/10/2024 14:30:00\n2,15/03/2024 08:00:00"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "dmy_hms"), show_col_types = FALSE)
+  expect_s3_class(result$dt, "POSIXct")
+  expect_equal(as.numeric(result$dt), as.numeric(as.POSIXct(c("2024-10-02 14:30:00", "2024-03-15 08:00:00"), tz = "UTC")))
+})
+
+test_that("vroom() auto-detects unambiguous DMY year-last dates without date_order", {
+  csv <- "id,date\n1,15/03/2024\n2,20/01/2024\n3,25/12/2023"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-03-15", "2024-01-20", "2023-12-25")))
+})
+
+test_that("vroom() auto-detects ambiguous year-last dates as MDY by default", {
+  csv <- "id,date\n1,10/02/2024\n2,03/15/2024\n3,07/04/2024"
+  result <- vroom::vroom(I(csv), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-02", "2024-03-15", "2024-07-04")))
+})
+
+test_that("vroom() handles NA values in MDY date column", {
+  csv <- "id,date\n1,10/02/2024\n2,NA\n3,03/15/2024"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "mdy"), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-02", NA, "2024-03-15")))
+})
+
+test_that("vroom() reads dot-separated MDY dates", {
+  csv <- "id,date\n1,10.02.2024\n2,03.15.2024"
+  result <- vroom::vroom(I(csv), locale = locale(date_order = "mdy"), show_col_types = FALSE)
+  expect_s3_class(result$date, "Date")
+  expect_equal(result$date, as.Date(c("2024-10-02", "2024-03-15")))
+})
