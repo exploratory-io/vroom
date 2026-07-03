@@ -91,7 +91,11 @@ public:
       have_warned_ = true;
       // it is intentional that we aren't using cpp11::package
       // https://github.com/tidyverse/vroom/commit/984a3e5e37e124feacfec3d184dbeb02eb1145c4
-      SEXP cli_ns = Rf_findVarInFrame(R_NamespaceRegistry, Rf_install("cli"));
+      // R_NamespaceRegistry is a non-API internal R symbol; R 4.6 no longer
+      // declares it in the public headers, breaking compilation. R_FindNamespace
+      // is the documented public API for the same lookup (a loaded package's
+      // namespace environment). exploratory-io/tam#36712.
+      SEXP cli_ns = R_FindNamespace(Rf_mkString("cli"));
       PROTECT(cli_ns);
       SEXP cli_warn = Rf_findFun(Rf_install("cli_warn"), cli_ns);
       PROTECT(cli_warn);
